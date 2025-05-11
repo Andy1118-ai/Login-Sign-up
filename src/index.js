@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import './styles/auth.css';
-import logo from './assets/cic.png';
+import logo from './assets/cic insurance.png'; // Update the logo import
 import picture1 from './assets/picture1.jpg';
 import picture2 from './assets/picture2.jpg';
 import picture3 from './assets/picture3.jpg';
@@ -604,6 +604,7 @@ function LoginSignup() {
                 placeholder="Enter your ID/Passport Number"
                 className={formErrors.idNumber ? 'error' : ''}
                 required
+                style={{ width: '100%' }} // Reset width to full
               />
               {formErrors.idNumber && (
                 <span className="error-text">{formErrors.idNumber}</span>
@@ -612,7 +613,7 @@ function LoginSignup() {
 
             <div className="form-group password-toggle">
               <label htmlFor="password">Password</label>
-              <div className="password-input-container">
+              <div className="password-input-container" style={{ position: 'relative' }}>
                 <input
                   type={passwordVisible ? 'text' : 'password'}
                   id="password"
@@ -622,12 +623,23 @@ function LoginSignup() {
                   placeholder="Enter your password"
                   className={formErrors.password ? 'error' : ''}
                   required
+                  style={{ paddingRight: '40px', width: 'calc(100% - 50px)' }} // Adjust width to fit toggle button
                 />
                 <button
                   type="button"
                   className="toggle-password-btn"
                   onClick={() => setPasswordVisible(!passwordVisible)}
                   aria-label={passwordVisible ? 'Hide password' : 'Show password'}
+                  style={{
+                    position: 'absolute',
+                    right: '10px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '16px'
+                  }}
                 >
                   {passwordVisible ? '🙈' : '👁️'}
                 </button>
@@ -645,15 +657,26 @@ function LoginSignup() {
 
             <button 
               type="submit" 
-              className="btn"
+              className={`btn modern-btn ${isSubmitting ? 'loading' : ''}`}
               disabled={isSubmitting}
+              style={{
+                backgroundColor: 'maroon',
+                color: 'white',
+                width: '100%',
+                padding: '10px',
+                border: 'none',
+                borderRadius: '5px',
+                fontSize: '16px',
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                opacity: isSubmitting ? 0.7 : 1
+              }}
             >
-              {isSubmitting ? 'Signing in...' : 'Sign In'}
+              {isSubmitting ? <span className="spinner"></span> : 'Sign In'}
             </button>
           </form>
 
           <p className="register-link">
-            Don't have an account? <a href="#">Register</a>
+            Don't have an account? <Link to="/register">Register</Link>
           </p>
         </div>
       </div>
@@ -669,6 +692,7 @@ export default function AppWrapper() {
         <Route path="/login" element={<LoginSignup />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/register" element={<Register />} />
       </Routes>
     </Router>
   );
@@ -680,9 +704,10 @@ if (!rootElement) {
 } else {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
-    <React.StrictMode>
-      <AppWrapper />
-    </React.StrictMode>
+    // Temporarily remove StrictMode for debugging
+    // <React.StrictMode>
+    <AppWrapper />
+    // </React.StrictMode>
   );
 }
 

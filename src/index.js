@@ -558,20 +558,20 @@ function LoginSignup() {
         {/* Background image is handled via CSS */}
       </div>
       <div className="right-screen">
-        <div className="login-container">
-          <img src={logo} alt="CIC Logo" className="logo" />
-          <h1>Sign in to CIC EasyBima</h1>
-          <p className="tagline">Getting insured with us is easy as 1-2-3</p>
+        <div className="login-container" style={{ padding: '20px', maxWidth: '400px', margin: '0 auto' }}>
+          <img src={logo} alt="CIC Logo" className="logo" style={{ display: 'block', margin: '0 auto 20px', maxWidth: '150px' }} />
+          <h1 style={{ textAlign: 'center', marginBottom: '10px' }}>Sign in to CIC EasyBima</h1>
+          <p className="tagline" style={{ textAlign: 'center', marginBottom: '20px' }}>Getting insured with us is easy as 1-2-3</p>
 
           {loginError && (
-            <div className="error-message">
+            <div className="error-message" style={{ color: 'red', marginBottom: '20px', textAlign: 'center' }}>
               {loginError}
             </div>
           )}
 
           <form onSubmit={handleSubmit} noValidate>
-            <div className="user-type">
-              <label>
+            <div className="user-type" style={{ marginBottom: '20px', textAlign: 'center' }}>
+              <label style={{ marginRight: '10px' }}>
                 <input
                   type="radio"
                   name="userType"
@@ -593,8 +593,8 @@ function LoginSignup() {
               </label>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="idNumber">ID/Passport Number *</label>
+            <div className="form-group" style={{ marginBottom: '20px' }}>
+              <label htmlFor="idNumber" style={{ display: 'block', marginBottom: '5px' }}>ID/Passport Number *</label>
               <input
                 type="text"
                 id="idNumber"
@@ -604,15 +604,15 @@ function LoginSignup() {
                 placeholder="Enter your ID/Passport Number"
                 className={formErrors.idNumber ? 'error' : ''}
                 required
-                style={{ width: '100%' }} // Reset width to full
+                style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
               />
               {formErrors.idNumber && (
-                <span className="error-text">{formErrors.idNumber}</span>
+                <span className="error-text" style={{ color: 'red', fontSize: '12px' }}>{formErrors.idNumber}</span>
               )}
             </div>
 
-            <div className="form-group password-toggle">
-              <label htmlFor="password">Password</label>
+            <div className="form-group password-toggle" style={{ marginBottom: '20px' }}>
+              <label htmlFor="password" style={{ display: 'block', marginBottom: '5px' }}>Password</label>
               <div className="password-input-container" style={{ position: 'relative' }}>
                 <input
                   type={passwordVisible ? 'text' : 'password'}
@@ -623,7 +623,7 @@ function LoginSignup() {
                   placeholder="Enter your password"
                   className={formErrors.password ? 'error' : ''}
                   required
-                  style={{ paddingRight: '40px', width: 'calc(100% - 50px)' }} // Adjust width to fit toggle button
+                  style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
                 />
                 <button
                   type="button"
@@ -645,12 +645,12 @@ function LoginSignup() {
                 </button>
               </div>
               {formErrors.password && (
-                <span className="error-text">{formErrors.password}</span>
+                <span className="error-text" style={{ color: 'red', fontSize: '12px' }}>{formErrors.password}</span>
               )}
             </div>
 
-            <div className="form-options">
-              <a href="/forgot-password" className="forgot-password">
+            <div className="form-options" style={{ marginBottom: '20px', textAlign: 'center' }}>
+              <a href="/forgot-password" className="forgot-password" style={{ color: 'blue', textDecoration: 'underline' }}>
                 Forgot Password?
               </a>
             </div>
@@ -675,8 +675,8 @@ function LoginSignup() {
             </button>
           </form>
 
-          <p className="register-link">
-            Don't have an account? <Link to="/register">Register</Link>
+          <p className="register-link" style={{ textAlign: 'center', marginTop: '20px' }}>
+            Don't have an account? <Link to="/register" style={{ color: 'blue', textDecoration: 'underline' }}>Register</Link>
           </p>
         </div>
       </div>

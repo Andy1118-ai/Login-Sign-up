@@ -3,12 +3,13 @@ import { useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import './styles/auth.css';
-import logo from './assets/cic_insurance.png';
-import picture1 from './assets/picture 1.jpg';
-import picture2 from './assets/picture 2.jpeg';
-import picture3 from './assets/picture 3.jpeg';
-import picture4 from './assets/picture 4.jpeg';
-import picture5 from './assets/picture 5.jpeg';
+import logo from './assets/enhanced/cic_insurance.png';
+import picture1 from './assets/enhanced/picture1.jpeg';
+import picture2 from './assets/enhanced/picture2.jpeg';
+import picture3 from './assets/enhanced/picture3.jpeg';
+import picture4 from './assets/enhanced/picture4.jpeg';
+import picture5 from './assets/enhanced/picture5.jpg';
+import picture6 from './assets/enhanced/picture6.jpeg';
 
 import CoverPage from './components/CoverPage';
 import ForgotPassword from './components/ForgotPassword';
@@ -17,6 +18,17 @@ import Register from './components/register';
 import QuoteFormSummary from './components/quoteformsummary';
 import App from './App';
 import FAQs from './components/FAQs';
+import CalendarExample from './components/examples/CalendarExample';
+
+// Import authentication utilities
+import {
+  USER_TYPES,
+  validateIdentifier,
+  validatePassword,
+  login,
+  getIdentifierLabel,
+  getIdentifierPlaceholder
+} from './utils/auth';
 
 // Error Boundary Component
 class ErrorBoundary extends React.Component {
@@ -189,26 +201,49 @@ function LoginSignup() {
     setTouchEnd(null);
   };
 
-  // Fix image preloading to prevent DOM errors
+  // Enhanced image preloading for 4K images
   useEffect(() => {
     let isMounted = true;
     const preloadImages = async () => {
       try {
         setIsLoading(true);
+
+        // Create an array to track loading progress
+        const totalImages = slides.length;
+        let loadedImages = 0;
+
         await Promise.all(slides.map(slide => {
           return new Promise((resolve, reject) => {
             const img = new Image();
+
+            // Set image loading attributes for high quality
+            img.setAttribute('importance', 'high');
+            img.setAttribute('loading', 'eager');
+            img.setAttribute('decoding', 'sync');
+
+            // Set source and event handlers
             img.src = slide.image;
-            img.onload = resolve;
+
+            img.onload = () => {
+              loadedImages++;
+              if (isMounted) {
+                // Update loading progress if needed
+                console.log(`Loaded image ${loadedImages}/${totalImages}`);
+              }
+              resolve();
+            };
+
             img.onerror = reject;
           });
         }));
+
         if (isMounted) {
           setIsLoading(false);
         }
       } catch (err) {
+        console.error('Error loading images:', err);
         if (isMounted) {
-          setError('Failed to load images');
+          setError('Failed to load high-resolution images');
           setIsLoading(false);
         }
       }
@@ -276,21 +311,16 @@ function LoginSignup() {
 
     setIsSubmitting(true);
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
       console.log('Login attempt with:', formData);
 
-      // For demo purposes, accept any valid ID and password with at least 6 characters
-      if (formData.idNumber && formData.idNumber.length >= 5 && formData.password && formData.password.length >= 6) {
-        // Set authentication state in both sessionStorage and localStorage for redundancy
-        sessionStorage.setItem('isAuthenticated', 'true');
-        localStorage.setItem('authToken', 'demo-token-123');
-        localStorage.setItem('user', JSON.stringify({
-          id: formData.idNumber,
-          userType: formData.userType
-        }));
+      // Use the centralized login function
+      const result = await login({
+        identifier: formData.idNumber,
+        userType: formData.userType,
+        password: formData.password
+      });
 
+      if (result.success) {
         console.log('Login successful, redirecting to dashboard');
 
         // Use a timeout to ensure state is updated before navigation
@@ -298,7 +328,7 @@ function LoginSignup() {
           navigate('/dashboard');
         }, 100);
       } else {
-        setLoginError('Invalid credentials. ID must be at least 5 characters and password must be at least 6 characters.');
+        setLoginError(result.error || 'Login failed. Please try again.');
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -311,18 +341,16 @@ function LoginSignup() {
   const validateForm = () => {
     const errors = {};
 
-    // Validate ID/Passport Number
-    if (!formData.idNumber || !formData.idNumber.trim()) {
-      errors.idNumber = 'ID/Passport Number is required';
-    } else if (formData.idNumber.trim().length < 5) {
-      errors.idNumber = 'ID/Passport Number must be at least 5 characters';
+    // Validate ID/Passport Number or KRA PIN using centralized validation
+    const identifierValidation = validateIdentifier(formData.idNumber, formData.userType);
+    if (!identifierValidation.isValid) {
+      errors.idNumber = identifierValidation.error;
     }
 
-    // Validate Password
-    if (!formData.password) {
-      errors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      errors.password = 'Password must be at least 6 characters';
+    // Validate Password using centralized validation
+    const passwordValidation = validatePassword(formData.password);
+    if (!passwordValidation.isValid) {
+      errors.password = passwordValidation.error;
     }
 
     // Only check confirmPassword if it's being used (for sign-up, not login)
@@ -639,13 +667,45 @@ function LoginSignup() {
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        style={{ backgroundImage: `url(${slides[currentSlide].image})` }}
       >
-        <div className="slide-description">
+        {/* 4K Image with enhanced quality */}
+        <img
+          src={slides[currentSlide].image}
+          alt={slides[currentSlide].description}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center',
+            transition: 'transform 8s ease-out, opacity 0.8s ease-in-out',
+            transform: isTransitioning ? 'scale(1)' : 'scale(1.05)',
+            opacity: isTransitioning ? 0.8 : 1,
+            filter: 'brightness(0.7) saturate(1.1)'
+          }}
+          loading="eager"
+          decoding="sync"
+        />
+
+        {/* Overlay gradient for better text visibility */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            background: 'linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.3), rgba(0,0,0,0.7))',
+            zIndex: 1
+          }}
+        />
+
+        {/* Text description positioned at the bottom */}
+        <div className="slide-description" style={{ zIndex: 2 }}>
           {slides[currentSlide].description}
         </div>
 
-        <div className="slider-controls">
+        {/* Slider controls at the very bottom */}
+        <div className="slider-controls" style={{ zIndex: 3 }}>
           {slides.map((_, index) => (
             <div
               key={index}
@@ -656,7 +716,7 @@ function LoginSignup() {
                   setTimeout(() => {
                     setCurrentSlide(index);
                     setIsTransitioning(false);
-                  }, 50);
+                  }, 500);
                 }
               }}
             />
@@ -715,7 +775,9 @@ function LoginSignup() {
             </div>
 
             <div className="form-group" style={{ marginBottom: '20px' }}>
-              <label htmlFor="idNumber" style={{ display: 'block', marginBottom: '5px' }}>ID/Passport Number *</label>
+              <label htmlFor="idNumber" style={{ display: 'block', marginBottom: '5px' }}>
+                {formData.userType === USER_TYPES.INTERMEDIARY ? 'KRA PIN *' : 'ID/Passport Number *'}
+              </label>
               <div style={{ position: 'relative' }}>
                 <input
                   type="text"
@@ -723,7 +785,9 @@ function LoginSignup() {
                   name="idNumber"
                   value={formData.idNumber}
                   onChange={handleInputChange}
-                  placeholder="Enter your ID/Passport Number"
+                  placeholder={formData.userType === USER_TYPES.INTERMEDIARY
+                    ? "Enter your KRA PIN"
+                    : "Enter your ID/Passport Number"}
                   className={formErrors.idNumber ? 'error' : ''}
                   required
                   style={{
@@ -752,6 +816,16 @@ function LoginSignup() {
               {formErrors.idNumber && (
                 <span className="error-text" style={{ color: 'red', fontSize: '12px' }}>{formErrors.idNumber}</span>
               )}
+              <small style={{
+                display: 'block',
+                marginTop: '5px',
+                fontSize: '11px',
+                color: '#666'
+              }}>
+                {formData.userType === USER_TYPES.INTERMEDIARY
+                  ? 'Format: 11 alphanumeric characters (e.g., A012345678B)'
+                  : 'Format: 8-10 digits (e.g., 12345678)'}
+              </small>
             </div>
 
             <div className="form-group password-toggle" style={{ marginBottom: '20px' }}>
@@ -871,6 +945,7 @@ export default function AppWrapper() {
           <Route path="/register" element={<Register />} />
           <Route path="/quoteformsummary" element={<QuoteFormSummary />} />
           <Route path="/faqs" element={<FAQs />} />
+          <Route path="/calendar" element={<CalendarExample />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </ErrorBoundary>

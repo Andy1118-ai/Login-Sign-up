@@ -8,7 +8,7 @@ import familyImg from '../assets/family.png';
 import motorImg from '../assets/electric-motor.png';
 import golfImg from '../assets/golf.png';
 import educationImg from '../assets/education.png';
-import privateImg from '../assets/car.png';
+import privateImg from '../assets/engine.png';
 import anchorImg from '../assets/anchor.png';
 
 const products = [

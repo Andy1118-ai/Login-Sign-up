@@ -1,189 +1,184 @@
-import React, { useState, useEffect } from 'react';
-import Calendar from './Calendar';
+.date-picker-manager {
+  margin-bottom: 20px;
+}
 
-/**
- * DatePickerManager - Manages different date picker types and conditional fields
- * 
- * @param {Object} props
- * @param {string} props.type - Type of date picker ('policy' or 'birth')
- * @param {Object} props.form - Form data object
- * @param {Function} props.setForm - Function to update form data
- * @param {string} props.name - Base field name
- * @param {string} props.label - Label for the field
- * @param {string} props.placeholder - Placeholder text
- * @param {boolean} props.required - Whether the field is required
- */
-const DatePickerManager = ({
-  type = 'policy',
-  form,
-  setForm,
-  name,
-  label,
-  placeholder = 'Select date',
-  required = false,
-}) => {
-  const [familyMembers, setFamilyMembers] = useState([]);
-  
-  // Handle spouse and children selection changes
-  useEffect(() => {
-    if (form.spouse === 'No' && form.children === 'No') {
-      // Remove family members when no spouse and no children
-      const updatedForm = { ...form };
-      // Clear all family members data
-      Object.keys(updatedForm).forEach(key => {
-        if (key.startsWith('family')) {
-          delete updatedForm[key];
-        }
-      });
-      setForm(updatedForm);
-      setFamilyMembers([]);
-    }
-  }, [form.spouse, form.children, setForm, form]);
-  
-  // Handle add family member
-  const handleAddFamilyMember = (type) => {
-    const newId = familyMembers.length + 1;
-    const newMember = {
-      id: newId,
-      type: type, // 'spouse' or 'child'
-      fieldName: `family${newId}Dob`
-    };
-    setFamilyMembers([...familyMembers, newMember]);
-  };
-  
-  // Handle remove family member
-  const handleRemoveFamilyMember = (id) => {
-    const updatedMembers = familyMembers.filter(member => member.id !== id);
-    setFamilyMembers(updatedMembers);
-    
-    // Remove the corresponding field from form
-    const updatedForm = { ...form };
-    delete updatedForm[`family${id}Dob`];
-    delete updatedForm[`family${id}Type`];
-    delete updatedForm[`family${id}Relation`];
-    setForm(updatedForm);
-  };
-  
-  // Handle date change
-  const handleDateChange = (date, fieldName) => {
-    setForm(prev => ({ ...prev, [fieldName]: date }));
-  };
-  
-  // Handle family member type change
-  const handleMemberTypeChange = (id, value) => {
-    setForm(prev => ({ ...prev, [`family${id}Type`]: value }));
-  };
-  
-  // Handle family member relation change
-  const handleRelationChange = (id, value) => {
-    setForm(prev => ({ ...prev, [`family${id}Relation`]: value }));
-  };
-  
-  return (
-    <div className="date-picker-manager">
-      {/* Main Date Field - Don't pass label here as it's already shown by FormField component */}
-      <Calendar
-        selectedDate={form[name]}
-        onChange={(date) => handleDateChange(date, name)}
-        placeholder={placeholder}
-        required={required}
-        name={name}
-        // For policy dates: minimum date is today, for birth dates: maximum date is today
-        minDate={type === 'policy' ? new Date() : undefined}
-        maxDate={type === 'birth' ? new Date() : undefined}
-        showSelectedValue={true}
-        isDOB={type === 'birth'} // Set isDOB to true for birth dates
-      />
-      
-      {/* Family Section (conditionally shown) */}
-      {name === 'dob' && (form.spouse === 'Yes' || form.children === 'Yes') && (
-        <div className="family-section">
-          <h3 className="family-section-title">Family Members</h3>
-          
-          <div className="family-controls">
-            {form.spouse === 'Yes' && (
-              <button 
-                type="button" 
-                className="add-family-btn"
-                onClick={() => handleAddFamilyMember('spouse')}
-              >
-                + Add Spouse
-              </button>
-            )}
-            
-            {form.children === 'Yes' && (
-              <button 
-                type="button" 
-                className="add-family-btn"
-                onClick={() => handleAddFamilyMember('child')}
-              >
-                + Add Child
-              </button>
-            )}
-          </div>
-          
-          {familyMembers.map((member) => (
-            <div key={member.id} className="family-member-row">
-              <div className="family-member-type">
-                <select
-                  value={form[`family${member.id}Type`] || member.type}
-                  onChange={(e) => handleMemberTypeChange(member.id, e.target.value)}
-                  className="family-type-select"
-                >
-                  <option value="spouse">Spouse</option>
-                  <option value="child">Child</option>
-                </select>
-                
-                {form[`family${member.id}Type`] === 'spouse' && (
-                  <select
-                    value={form[`family${member.id}Relation`] || ''}
-                    onChange={(e) => handleRelationChange(member.id, e.target.value)}
-                    className="family-relation-select"
-                  >
-                    <option value="">Select Relation</option>
-                    <option value="Husband">Husband</option>
-                    <option value="Wife">Wife</option>
-                  </select>
-                )}
-                
-                {form[`family${member.id}Type`] === 'child' && (
-                  <select
-                    value={form[`family${member.id}Relation`] || ''}
-                    onChange={(e) => handleRelationChange(member.id, e.target.value)}
-                    className="family-relation-select"
-                  >
-                    <option value="">Select Relation</option>
-                    <option value="Son">Son</option>
-                    <option value="Daughter">Daughter</option>
-                  </select>
-                )}
-              </div>
-              
-              <Calendar
-                selectedDate={form[member.fieldName]}
-                onChange={(date) => handleDateChange(date, member.fieldName)}
-                placeholder={`Select ${form[`family${member.id}Type`] || member.type}'s date of birth`}
-                required={true}
-                label={form[`family${member.id}Relation`] || `Family Member ${member.id}`}
-                name={member.fieldName}
-                maxDate={new Date()} // Birth date can't be in the future
-                showSelectedValue={true}
-                isDOB={true} // This is a DOB field
-              />
-              
-              <button 
-                type="button" 
-                className="remove-family-btn"
-                onClick={() => handleRemoveFamilyMember(member.id)}
-              >
-                ×
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
+.family-section {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
 
-export default DatePickerManager; 
+.family-section-title {
+  font-size: 18px;
+  color: #800000;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.family-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.add-family-btn {
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.add-family-btn:hover {
+  background-color: #e8e8e8;
+  border-color: #999;
+}
+
+.family-member-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  align-items: flex-start;
+  background-color: white;
+  padding: 15px;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  margin-bottom: 15px;
+  position: relative;
+}
+
+.family-member-type {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 200px;
+}
+
+.family-type-select,
+.family-relation-select {
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  flex: 1;
+  min-width: 120px;
+}
+
+.remove-family-btn {
+  background-color: #ffebee;
+  color: #d32f2f;
+  border: 1px solid #ffcdd2;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  transition: all 0.2s ease;
+}
+
+.remove-family-btn:hover {
+  background-color: #ffcdd2;
+  color: #b71c1c;
+}
+
+@media (max-width: 768px) {
+  .family-member-row {
+    flex-direction: column;
+    padding-bottom: 20px;
+    padding-top: 40px;
+  }
+  
+  .family-member-type {
+    width: 100%;
+  }
+  
+  .remove-family-btn {
+    right: 10px;
+    top: 10px;
+  }
+}
+
+.spouse-dob-section,
+.children-dob-section {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #f9f9f9;
+  border-radius: 6px;
+}
+
+.quote-form-group {
+  margin-bottom: 15px;
+}
+
+.quote-form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.quote-form-select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+/* Improved styling for date of birth fields */
+[name="dob"],
+[name^="spouseDob"],
+[name^="childDob"] {
+  font-weight: 500 !important;
+}
+
+/* Highlight DOB fields */
+.dob-calendar input {
+  border-color: #882323 !important;
+}
+
+.dob-calendar input:focus {
+  box-shadow: 0 0 0 3px rgba(136, 35, 35, 0.2) !important;
+}
+
+/* Ensure DOB calendar appears in front of all elements */
+.date-picker-manager .dob-calendar .react-datepicker-popper {
+  z-index: 9999 !important;
+}
+
+/* Transition effects for conditional fields */
+.date-picker-manager .calendar-field {
+  transition: all 0.3s ease;
+  transform-origin: top;
+  animation: slide-down 0.3s ease forwards;
+}
+
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Styling for the required indicator */
+.children-dob-section .required {
+  color: #882323;
+  margin-left: 2px;
+} 

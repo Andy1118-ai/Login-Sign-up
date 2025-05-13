@@ -1,21 +1,87 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import './styles/auth.css';
-import logo from './assets/cic insurance.png'; // Update the logo import
-import picture1 from './assets/picture1.jpg';
-import picture2 from './assets/picture2.jpg';
-import picture3 from './assets/picture3.jpg';
+import logo from './assets/cic_insurance.png';
+import picture1 from './assets/picture 1.jpg';
+import picture2 from './assets/picture 2.jpeg';
+import picture3 from './assets/picture 3.jpeg';
+import picture4 from './assets/picture 4.jpeg';
+import picture5 from './assets/picture 5.jpeg';
+
 import CoverPage from './components/CoverPage';
 import ForgotPassword from './components/ForgotPassword';
 import Dashboard from './components/Dashboard';
 import Register from './components/register';
+import QuoteFormSummary from './components/quoteformsummary';
+import App from './App';
+import FAQs from './components/FAQs';
+
+// Error Boundary Component
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null, errorInfo: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    // Update state so the next render will show the fallback UI
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    // Log to error reporting service in production, console in development
+    if (process.env.NODE_ENV === 'development') {
+      console.error("React Error Boundary caught an error:", error, errorInfo);
+    }
+    this.setState({ error, errorInfo });
+  }
+
+  render() {
+    if (this.state.hasError) {
+      // Fallback UI
+      return (
+        <div style={{
+          padding: '20px',
+          margin: '20px',
+          border: '1px solid #fff',
+          borderRadius: '4px',
+          backgroundColor: '#f8d7da',
+          color: '#721c24'
+        }}>
+          <h2>Something went wrong.</h2>
+          <p>Please try refreshing the page. If the problem persists, contact support.</p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#dc3545',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            Refresh Page
+          </button>
+        </div>
+      );
+    }
+
+    // If no error, render children normally
+    return this.props.children;
+  }
+}
 
 function LoginSignup() {
+  const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // eslint-disable-next-line no-unused-vars
+  const [_isLoading, setIsLoading] = useState(true);
+  // eslint-disable-next-line no-unused-vars
+  const [_error, setError] = useState(null);
   const [isPaused, setIsPaused] = useState(false);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
@@ -30,22 +96,13 @@ function LoginSignup() {
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loginError, setLoginError] = useState('');
-  const [passwordStrength, setPasswordStrength] = useState({
-    score: 0,
-    feedback: '',
-    requirements: {
-      length: false,
-      uppercase: false,
-      lowercase: false,
-      number: false,
-      special: false
-    }
-  });
-  const [socialLoading, setSocialLoading] = useState({
+  // eslint-disable-next-line no-unused-vars
+  const [_socialLoading, setSocialLoading] = useState({
     google: false,
     facebook: false
   });
-  const [showSignUp, setShowSignUp] = useState(false);
+  // eslint-disable-next-line no-unused-vars
+  const [_showSignUp, setShowSignUp] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: '' });
   const [signupData, setSignupData] = useState({
     firstName: '',
@@ -59,32 +116,41 @@ function LoginSignup() {
   });
   const [signupErrors, setSignupErrors] = useState({});
   const [signupStep, setSignupStep] = useState(1);
+  const [focusedInputs, setFocusedInputs] = useState({});
+  const [validatedFields, setValidatedFields] = useState({});
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const slides = [
     { image: picture1, description: 'Welcome to CIC EasyBima' },
     { image: picture2, description: 'Your trusted insurance partner' },
     { image: picture3, description: 'Easy insurance solutions' },
+    { image: picture4, description: 'Guide to insurance' },
+    { image: picture5, description: 'Guides through life' },
   ];
 
   const nextSlide = useCallback(() => {
     if (isTransitioning) return;
     setIsTransitioning(true);
-    setCurrentSlide((prevSlide) => (prevSlide + 1) % slides.length);
-    setTimeout(() => setIsTransitioning(false), 500); // Match transition duration
+    setTimeout(() => {
+      setCurrentSlide((prevSlide) => (prevSlide + 1) % slides.length);
+      setIsTransitioning(false);
+    }, 50);
   }, [slides.length, isTransitioning]);
 
   const prevSlide = useCallback(() => {
     if (isTransitioning) return;
     setIsTransitioning(true);
-    setCurrentSlide((prevSlide) => (prevSlide - 1 + slides.length) % slides.length);
-    setTimeout(() => setIsTransitioning(false), 500); // Match transition duration
+    setTimeout(() => {
+      setCurrentSlide((prevSlide) => (prevSlide - 1 + slides.length) % slides.length);
+      setIsTransitioning(false);
+    }, 50);
   }, [slides.length, isTransitioning]);
 
-  const togglePause = useCallback(() => {
+  // eslint-disable-next-line no-unused-vars
+  const _togglePause = useCallback(() => {
     setIsPaused(prev => !prev);
   }, []);
 
-  // Handle keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'ArrowLeft') {
@@ -98,7 +164,6 @@ function LoginSignup() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [nextSlide, prevSlide]);
 
-  // Handle touch events
   const handleTouchStart = (e) => {
     setTouchStart(e.targetTouches[0].clientX);
   };
@@ -109,7 +174,7 @@ function LoginSignup() {
 
   const handleTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
-    
+
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > 50;
     const isRightSwipe = distance < -50;
@@ -124,8 +189,9 @@ function LoginSignup() {
     setTouchEnd(null);
   };
 
+  // Fix image preloading to prevent DOM errors
   useEffect(() => {
-    // Preload images
+    let isMounted = true;
     const preloadImages = async () => {
       try {
         setIsLoading(true);
@@ -137,44 +203,43 @@ function LoginSignup() {
             img.onerror = reject;
           });
         }));
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       } catch (err) {
-        setError('Failed to load images');
-        setIsLoading(false);
+        if (isMounted) {
+          setError('Failed to load images');
+          setIsLoading(false);
+        }
       }
     };
 
     preloadImages();
-  }, []);
 
+    // Cleanup function to prevent state updates on unmounted component
+    return () => {
+      isMounted = false;
+    };
+  }, [slides]);
+
+  // Fix slider auto-rotation to prevent DOM errors
   useEffect(() => {
     if (!isPaused) {
-      const interval = setInterval(nextSlide, 3000);
-      return () => clearInterval(interval);
+      const interval = setInterval(() => {
+        // Only proceed if document is visible and not in transition
+        if (document && !document.hidden && !isTransitioning) {
+          nextSlide();
+        }
+      }, 3000);
+
+      // Cleanup interval on component unmount or dependency change
+      return () => {
+        clearInterval(interval);
+      };
     }
-  }, [isPaused, nextSlide]);
-
-  const checkPasswordStrength = (password) => {
-    const requirements = {
-      length: password.length >= 8,
-      uppercase: /[A-Z]/.test(password),
-      lowercase: /[a-z]/.test(password),
-      number: /[0-9]/.test(password),
-      special: /[^A-Za-z0-9]/.test(password)
-    };
-
-    const score = Object.values(requirements).filter(Boolean).length;
-    const feedback = score === 5 ? 'Strong password' :
-      score === 4 ? 'Good password' :
-      score === 3 ? 'Fair password' :
-      score === 2 ? 'Weak password' : 'Very weak password';
-
-    return {
-      score,
-      feedback,
-      requirements
-    };
-  };
+    // Return empty cleanup function when paused to maintain consistent return
+    return () => {};
+  }, [isPaused, nextSlide, isTransitioning]);
 
   const formatPhoneNumber = (value) => {
     const numbers = value.replace(/\D/g, '');
@@ -190,12 +255,6 @@ function LoginSignup() {
       [name]: value
     }));
 
-    // Check password strength when password changes
-    if (name === 'password') {
-      setPasswordStrength(checkPasswordStrength(value));
-    }
-
-    // Clear error when user starts typing
     if (formErrors[name]) {
       setFormErrors(prev => ({
         ...prev,
@@ -207,7 +266,8 @@ function LoginSignup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoginError('');
-    
+
+    // Validate form inputs
     const errors = validateForm();
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
@@ -216,40 +276,67 @@ function LoginSignup() {
 
     setIsSubmitting(true);
     try {
-      // Simulate API call
+      // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // TODO: Replace with actual API call
+
       console.log('Login attempt with:', formData);
-      
-      // For demo purposes, show success
-      alert('Login successful!');
+
+      // For demo purposes, accept any valid ID and password with at least 6 characters
+      if (formData.idNumber && formData.idNumber.length >= 5 && formData.password && formData.password.length >= 6) {
+        // Set authentication state in both sessionStorage and localStorage for redundancy
+        sessionStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('authToken', 'demo-token-123');
+        localStorage.setItem('user', JSON.stringify({
+          id: formData.idNumber,
+          userType: formData.userType
+        }));
+
+        console.log('Login successful, redirecting to dashboard');
+
+        // Use a timeout to ensure state is updated before navigation
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 100);
+      } else {
+        setLoginError('Invalid credentials. ID must be at least 5 characters and password must be at least 6 characters.');
+      }
     } catch (error) {
+      console.error('Login error:', error);
       setLoginError('Login failed. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Form validation
   const validateForm = () => {
     const errors = {};
-    if (!formData.idNumber.trim()) {
+
+    // Validate ID/Passport Number
+    if (!formData.idNumber || !formData.idNumber.trim()) {
       errors.idNumber = 'ID/Passport Number is required';
-    } else if (formData.idNumber.length < 5) {
+    } else if (formData.idNumber.trim().length < 5) {
       errors.idNumber = 'ID/Passport Number must be at least 5 characters';
     }
-    
+
+    // Validate Password
     if (!formData.password) {
       errors.password = 'Password is required';
     } else if (formData.password.length < 6) {
       errors.password = 'Password must be at least 6 characters';
     }
 
-    if (formData.password !== formData.confirmPassword) {
+    // Only check confirmPassword if it's being used (for sign-up, not login)
+    if (formData.confirmPassword !== undefined && formData.password !== formData.confirmPassword) {
       errors.confirmPassword = 'Passwords do not match';
     }
-    
+
+    // Always log validation results for debugging
+    console.log('Form validation results:', {
+      hasErrors: Object.keys(errors).length > 0,
+      errors,
+      formData
+    });
+
     return errors;
   };
 
@@ -258,7 +345,8 @@ function LoginSignup() {
     setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
   };
 
-  const handleSocialLogin = async (provider) => {
+  // eslint-disable-next-line no-unused-vars
+  const _handleSocialLogin = async (provider) => {
     setSocialLoading(prev => ({ ...prev, [provider.toLowerCase()]: true }));
     try {
       await new Promise(resolve => setTimeout(resolve, 1500));
@@ -270,7 +358,8 @@ function LoginSignup() {
     }
   };
 
-  const handleSignUpWithEmail = () => {
+  // eslint-disable-next-line no-unused-vars
+  const _handleSignUpWithEmail = () => {
     setShowSignUp(true);
     setFormData({
       userType: 'customer',
@@ -286,16 +375,13 @@ function LoginSignup() {
   const validatePhoneNumber = async (phoneNumber) => {
     try {
       const cleanNumber = phoneNumber.replace(/\D/g, '');
-      
-      const response = await fetch(`https://api.numverify.com/v1/validate?access_key=YOUR_API_KEY&number=${cleanNumber}`);
-      const data = await response.json();
-      
-      if (data.valid) {
+
+      if (cleanNumber.length >= 10) {
         return {
           isValid: true,
           formattedNumber: formatPhoneNumber(cleanNumber),
-          countryCode: data.country_code,
-          location: data.location
+          countryCode: 'KE',
+          location: 'Kenya'
         };
       } else {
         return {
@@ -304,7 +390,9 @@ function LoginSignup() {
         };
       }
     } catch (error) {
-      console.error('Phone validation error:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Phone validation error:', error);
+      }
       return {
         isValid: false,
         error: 'Failed to validate phone number'
@@ -313,32 +401,26 @@ function LoginSignup() {
   };
 
   const handleInputFocus = (e) => {
-    const input = e.target;
-    const formGroup = input.closest('.form-group');
-    formGroup.classList.add('focused');
-    
-    // Add validation icon
-    const existingIcon = formGroup.querySelector('.validation-icon');
-    if (!existingIcon) {
-      const icon = document.createElement('div');
-      icon.className = 'validation-icon';
-      formGroup.appendChild(icon);
-    }
+    const { name } = e.target;
+    setFocusedInputs(prev => ({
+      ...prev,
+      [name]: true
+    }));
   };
 
   const handleInputBlur = (e) => {
-    const input = e.target;
-    const formGroup = input.closest('.form-group');
-    formGroup.classList.remove('focused');
-    
-    // Validate on blur
-    const { name, value } = input;
+    const { name, value } = e.target;
+    setFocusedInputs(prev => ({
+      ...prev,
+      [name]: false
+    }));
+
     if (value.trim()) {
       validateField(name, value).then(isValid => {
-        const icon = formGroup.querySelector('.validation-icon');
-        if (icon) {
-          icon.className = `validation-icon ${isValid ? 'valid' : 'invalid'}`;
-        }
+        setValidatedFields(prev => ({
+          ...prev,
+          [name]: isValid ? 'valid' : 'invalid'
+        }));
       });
     }
   };
@@ -346,7 +428,7 @@ function LoginSignup() {
   const validateField = async (name, value) => {
     let error = '';
     let isValid = false;
-    
+
     switch (name) {
       case 'email':
         if (!/\S+@\S+\.\S+/.test(value)) {
@@ -370,12 +452,10 @@ function LoginSignup() {
         }
         break;
       case 'password':
-        const strength = checkPasswordStrength(value);
-        if (strength.score < 3) {
-          error = 'Please choose a stronger password';
+        if (value.length < 6) {
+          error = 'Password must be at least 6 characters';
         } else {
           isValid = true;
-          showToast(`Password strength: ${strength.feedback}`, 'success');
         }
         break;
       case 'confirmPassword':
@@ -386,8 +466,11 @@ function LoginSignup() {
           showToast('Passwords match!', 'success');
         }
         break;
+      default:
+        isValid = true;
+        break;
     }
-    
+
     if (error) {
       setSignupErrors(prev => ({
         ...prev,
@@ -395,17 +478,23 @@ function LoginSignup() {
       }));
       return false;
     }
-    
-    return true;
+
+    setSignupErrors(prev => ({
+      ...prev,
+      [name]: ''
+    }));
+
+    return isValid;
   };
 
-  const handleSignupInputChange = async (e) => {
+  // eslint-disable-next-line no-unused-vars
+  const _handleSignupInputChange = async (e) => {
     const { name, value, type, checked } = e.target;
     let processedValue = value;
 
     if (name === 'phone') {
       processedValue = formatPhoneNumber(value);
-      
+
       if (processedValue.length === 12) {
         const validation = await validatePhoneNumber(processedValue);
         if (!validation.isValid) {
@@ -419,9 +508,8 @@ function LoginSignup() {
             ...prev,
             phone: ''
           }));
-          
-          // Show success toast for valid phone number
-          showToast('Phone number validated successfully!', 'success');
+
+          showToast('Phone number validated!', 'success');
         }
       }
     }
@@ -431,16 +519,6 @@ function LoginSignup() {
       [name]: type === 'checkbox' ? checked : processedValue
     }));
 
-    if (name === 'password') {
-      const strength = checkPasswordStrength(value);
-      setPasswordStrength(strength);
-      
-      // Show feedback toast for password strength
-      if (strength.score >= 4) {
-        showToast('Strong password!', 'success');
-      }
-    }
-
     if (signupErrors[name]) {
       setSignupErrors(prev => ({
         ...prev,
@@ -449,7 +527,8 @@ function LoginSignup() {
     }
   };
 
-  const nextStep = () => {
+  // eslint-disable-next-line no-unused-vars
+  const _nextStep = () => {
     if (signupStep === 1) {
       const errors = validatePersonalInfo();
       if (Object.keys(errors).length > 0) {
@@ -466,6 +545,7 @@ function LoginSignup() {
     setSignupStep(prev => prev + 1);
   };
 
+  // eslint-disable-next-line no-unused-vars
   const prevStep = () => {
     setSignupStep(prev => prev - 1);
   };
@@ -491,8 +571,8 @@ function LoginSignup() {
     const errors = {};
     if (!signupData.password) {
       errors.password = 'Password is required';
-    } else if (passwordStrength.score < 3) {
-      errors.password = 'Please choose a stronger password';
+    } else if (signupData.password.length < 6) {
+      errors.password = 'Password must be at least 6 characters';
     }
     if (signupData.password !== signupData.confirmPassword) {
       errors.confirmPassword = 'Passwords do not match';
@@ -503,6 +583,7 @@ function LoginSignup() {
     return errors;
   };
 
+  // eslint-disable-next-line no-unused-vars
   const handleSignupSubmit = async (e) => {
     e.preventDefault();
     const errors = validateSignupForm();
@@ -513,7 +594,6 @@ function LoginSignup() {
 
     setIsSubmitting(true);
     try {
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
       showToast('Account created successfully!', 'success');
       setShowSignUp(false);
@@ -554,17 +634,58 @@ function LoginSignup() {
 
   return (
     <div className="split-screen">
-      <div className="left-screen">
-        {/* Background image is handled via CSS */}
+      <div
+        className="left-screen"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        style={{ backgroundImage: `url(${slides[currentSlide].image})` }}
+      >
+        <div className="slide-description">
+          {slides[currentSlide].description}
+        </div>
+
+        <div className="slider-controls">
+          {slides.map((_, index) => (
+            <div
+              key={index}
+              className={`slide-dot ${currentSlide === index ? 'active' : ''}`}
+              onClick={() => {
+                if (!isTransitioning) {
+                  setIsTransitioning(true);
+                  setTimeout(() => {
+                    setCurrentSlide(index);
+                    setIsTransitioning(false);
+                  }, 50);
+                }
+              }}
+            />
+          ))}
+        </div>
       </div>
       <div className="right-screen">
-        <div className="login-container" style={{ padding: '20px', maxWidth: '400px', margin: '0 auto' }}>
-          <img src={logo} alt="CIC Logo" className="logo" style={{ display: 'block', margin: '0 auto 20px', maxWidth: '150px' }} />
-          <h1 style={{ textAlign: 'center', marginBottom: '10px' }}>Sign in to CIC EasyBima</h1>
-          <p className="tagline" style={{ textAlign: 'center', marginBottom: '20px' }}>Getting insured with us is easy as 1-2-3</p>
+        <div className="login-container" style={{
+          padding: '30px',
+          maxWidth: '450px',
+          margin: '0 auto',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+          borderRadius: '10px',
+          backgroundColor: '#fff'
+        }}>
+          <img src={logo} alt="cic insurance" className="logo" style={{ display: 'block', margin: '0 auto 20px', maxWidth: '150px' }} />
+          <h1 style={{ textAlign: 'center', marginBottom: '10px', color: '#800000' }}>Sign in to CIC EasyBima</h1>
+          <p className="tagline" style={{ textAlign: 'center', marginBottom: '30px', color: '#666' }}>Getting insured with us is easy as 1-2-3</p>
 
           {loginError && (
-            <div className="error-message" style={{ color: 'red', marginBottom: '20px', textAlign: 'center' }}>
+            <div className="error-message" style={{
+              color: '#721c24',
+              backgroundColor: '#f8d7da',
+              padding: '10px 15px',
+              borderRadius: '5px',
+              marginBottom: '20px',
+              textAlign: 'center',
+              border: '1px solid #f5c6cb'
+            }}>
               {loginError}
             </div>
           )}
@@ -595,17 +716,39 @@ function LoginSignup() {
 
             <div className="form-group" style={{ marginBottom: '20px' }}>
               <label htmlFor="idNumber" style={{ display: 'block', marginBottom: '5px' }}>ID/Passport Number *</label>
-              <input
-                type="text"
-                id="idNumber"
-                name="idNumber"
-                value={formData.idNumber}
-                onChange={handleInputChange}
-                placeholder="Enter your ID/Passport Number"
-                className={formErrors.idNumber ? 'error' : ''}
-                required
-                style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
-              />
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="text"
+                  id="idNumber"
+                  name="idNumber"
+                  value={formData.idNumber}
+                  onChange={handleInputChange}
+                  placeholder="Enter your ID/Passport Number"
+                  className={formErrors.idNumber ? 'error' : ''}
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    border: `1px solid ${focusedInputs.idNumber ? '#4a90e2' : '#ccc'}`,
+                    borderRadius: '5px',
+                    boxShadow: focusedInputs.idNumber ? '0 0 3px rgba(74, 144, 226, 0.5)' : 'none'
+                  }}
+                  onFocus={handleInputFocus}
+                  onBlur={handleInputBlur}
+                />
+                {validatedFields.idNumber && (
+                  <div className={`validation-icon ${validatedFields.idNumber}`} style={{
+                    position: 'absolute',
+                    right: '10px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    width: '20px',
+                    height: '20px',
+                    background: validatedFields.idNumber === 'valid' ? 'green' : 'red',
+                    borderRadius: '50%'
+                  }}></div>
+                )}
+              </div>
               {formErrors.idNumber && (
                 <span className="error-text" style={{ color: 'red', fontSize: '12px' }}>{formErrors.idNumber}</span>
               )}
@@ -623,8 +766,28 @@ function LoginSignup() {
                   placeholder="Enter your password"
                   className={formErrors.password ? 'error' : ''}
                   required
-                  style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    border: `1px solid ${focusedInputs.password ? '#4a90e2' : '#ccc'}`,
+                    borderRadius: '5px',
+                    boxShadow: focusedInputs.password ? '0 0 3px rgba(74, 144, 226, 0.5)' : 'none'
+                  }}
+                  onFocus={handleInputFocus}
+                  onBlur={handleInputBlur}
                 />
+                {validatedFields.password && (
+                  <div className={`validation-icon ${validatedFields.password}`} style={{
+                    position: 'absolute',
+                    right: '40px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    width: '20px',
+                    height: '20px',
+                    background: validatedFields.password === 'valid' ? 'green' : 'red',
+                    borderRadius: '50%'
+                  }}></div>
+                )}
                 <button
                   type="button"
                   className="toggle-password-btn"
@@ -650,35 +813,46 @@ function LoginSignup() {
             </div>
 
             <div className="form-options" style={{ marginBottom: '20px', textAlign: 'center' }}>
-              <a href="/forgot-password" className="forgot-password" style={{ color: 'blue', textDecoration: 'underline' }}>
+              <Link to="/forgot-password" className="forgot-password" style={{ color: 'blue', textDecoration: 'underline' }}>
                 Forgot Password?
-              </a>
+              </Link>
             </div>
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className={`btn modern-btn ${isSubmitting ? 'loading' : ''}`}
               disabled={isSubmitting}
               style={{
-                backgroundColor: 'maroon',
+                backgroundColor: '#800000',
                 color: 'white',
                 width: '100%',
-                padding: '10px',
+                padding: '12px',
                 border: 'none',
                 borderRadius: '5px',
                 fontSize: '16px',
+                fontWeight: 'bold',
                 cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                opacity: isSubmitting ? 0.7 : 1
+                opacity: isSubmitting ? 0.7 : 1,
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+                transition: 'all 0.3s ease'
               }}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#9a0000'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#800000'}
             >
               {isSubmitting ? <span className="spinner"></span> : 'Sign In'}
             </button>
           </form>
 
           <p className="register-link" style={{ textAlign: 'center', marginTop: '20px' }}>
-            Don't have an account? <Link to="/register" style={{ color: 'blue', textDecoration: 'underline' }}>Register</Link>
+            Don't have an account? <Link to="/register" style={{ color: 'maroon', textDecoration: 'underline' }}>Register</Link>
           </p>
         </div>
+
+        {toast.show && (
+          <div className={`toast-notification ${toast.type}`}>
+            {toast.message}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -686,30 +860,53 @@ function LoginSignup() {
 
 export default function AppWrapper() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<CoverPage />} />
-        <Route path="/login" element={<LoginSignup />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/register" element={<Register />} />
-      </Routes>
-    </Router>
+    <BrowserRouter>
+      <ErrorBoundary>
+        <Routes>
+          <Route path="/" element={<CoverPage />} />
+          <Route path="/home" element={<App />} />
+          <Route path="/login" element={<LoginSignup />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/quoteformsummary" element={<QuoteFormSummary />} />
+          <Route path="/faqs" element={<FAQs />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </ErrorBoundary>
+    </BrowserRouter>
   );
 }
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
-  console.error("Root element with id 'root' not found. Ensure it exists in index.html.");
+  if (process.env.NODE_ENV === 'development') {
+    console.error("Root element with id 'root' not found. Ensure it exists in index.html.");
+  }
 } else {
-  const root = ReactDOM.createRoot(rootElement);
-  root.render(
-    // Temporarily remove StrictMode for debugging
-    // <React.StrictMode>
-    <AppWrapper />
-    // </React.StrictMode>
-  );
+  try {
+    const root = ReactDOM.createRoot(rootElement);
+    root.render(
+      <React.StrictMode>
+        <AppWrapper />
+      </React.StrictMode>
+    );
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error("Error rendering React application:", error);
+    }
+    // Fallback rendering directly to the body if root fails
+    document.body.innerHTML = `
+      <div style="padding: 20px; margin: 20px; border: 1px solid #fff; border-radius: 4px;
+                  background-color: #f8d7da; color: #721c24; font-family: sans-serif;">
+        <h2>Something went wrong while loading the application.</h2>
+        <p>Please try refreshing the page. If the problem persists, contact support.</p>
+        <button onclick="window.location.reload()"
+                style="padding: 8px 16px; background-color: #dc3545; color: white;
+                       border: none; border-radius: 4px; cursor: pointer;">
+          Refresh Page
+        </button>
+      </div>
+    `;
+  }
 }
-
-// Add a fallback UI for debugging
-console.log("React application is rendering...");

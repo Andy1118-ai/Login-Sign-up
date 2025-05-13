@@ -71,6 +71,8 @@ const RegisterPage = () => {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 8) {
       newErrors.password = 'Password must be at least 8 characters';
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
+      newErrors.password = 'Password must contain at least one uppercase letter, one lowercase letter, and one number';
     }
     
     // Validate confirm password
@@ -148,7 +150,9 @@ const RegisterPage = () => {
       return;
     }
     
-    console.log('Form submitted:', formData);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Form submitted:', formData);
+    }
     // Add form submission logic here (e.g., API call)
     
     // For demo purposes, navigate to login after successful registration

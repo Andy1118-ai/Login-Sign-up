@@ -4,12 +4,12 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import './styles/auth.css';
 import logo from './assets/enhanced/cic_insurance.png';
-import picture1 from './assets/enhanced/picture1.jpg';
-import picture2 from './assets/enhanced/picture2.jpg';
-import picture3 from './assets/enhanced/picture3.jpg';
-import picture4 from './assets/enhanced/picture4.jpg';
-import picture5 from './assets/enhanced/picture5.jpg';
-import picture6 from './assets/enhanced/picture6.jpg';
+import picture1 from './assets/picture1.jpg';
+import picture2 from './assets/picture2.jpg';
+import picture3 from './assets/picture3.jpg';
+import picture4 from './assets/picture4.jpg';
+import picture5 from './assets/picture5.jpg';
+import picture6 from './assets/picture6.jpg';
 
 import CoverPage from './components/CoverPage';
 import ForgotPassword from './components/ForgotPassword';
